@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [screenIsOn, setScreenIsOn] = useState(false);
+  const [activeMode, setActiveMode] = useState<"info" | "stats" | "moves">("info");
   const [activePokemon, setActivePokemon] = useState<number>(1);
   const [description, setDescription] = useState<string>("");
 
@@ -19,6 +20,10 @@ export default function Home() {
 
   const switchActivePokemon = (number: number) => {
     setActivePokemon((prev) => prev + number);
+  };
+
+  const switchActiveMode = (mode: "info" | "stats" | "moves") => {
+    setActiveMode(mode);
   };
 
   useEffect(() => {
@@ -42,9 +47,15 @@ export default function Home() {
           className="w-[200px] h-[40px] absolute bottom-[60px] rounded-full left-0 right-0 mx-auto z-20 "
         ></div>
       </TopScreen>
-      <Controls deviceIsOn={screenIsOn} activePokemon={switchActivePokemon} topScreen={topScreenHandler} />
+      <Controls
+        changeMode={switchActiveMode}
+        deviceIsOn={screenIsOn}
+        activeMode={activeMode}
+        activePokemon={switchActivePokemon}
+        topScreen={topScreenHandler}
+      />
       <BottomScreen isOn={screenIsOn}>
-        <Description description={description} />
+        {activeMode === "info" && <Description description={description} />}
       </BottomScreen>
     </main>
   );
