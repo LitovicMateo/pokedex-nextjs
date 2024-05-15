@@ -1,6 +1,6 @@
-import BottomScreen from "@/components/BottomScreen";
-import Controls from "@/components/Controls";
-import TopScreen from "@/components/TopScreen";
+import BottomScreen from "@/components/layout/BottomScreen";
+import Controls from "@/components/layout/Controls";
+import TopScreen from "@/components/layout/TopScreen";
 import Image from "next/image";
 
 export default function Home() {
