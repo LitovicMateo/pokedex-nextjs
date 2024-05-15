@@ -19,12 +19,12 @@ export default function Home() {
   }
 
   return (
-    <main className="flex flex-col gap-[30px] justify-start items-center bg-gradient-to-br p-[32px] pt-[64px] from-[#B63838] to-[#B22424] h-svh w-full max-h-[930px] max-w-[430px] rounded-md ">
+    <main className="flex flex-col gap-[30px] justify-start items-center bg-gradient-to-br p-[32px] pt-[64px] from-[#B63838] to-[#B22424] h-svh w-full md:max-h-[930px] md:max-w-[430px] rounded-md ">
       <TopScreen isOn={screenIsOn}>
         <div className="w-full h-full flex justify-center items-center">
           <img
             src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${activePokemon}.png`}
-            className="h-[240px] w-[240px] z-50"
+            className="h-full aspect-square z-50"
           />
         </div>
         <div style={{
