@@ -5,10 +5,11 @@ import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 
 type ControlsProps = {
   topScreen: () => void;
+  deviceIsOn: boolean;
   activePokemon: (number: number) => void;
 };
 
-const Controls: React.FC<ControlsProps> = ({ topScreen, activePokemon }) => {
+const Controls: React.FC<ControlsProps> = ({ topScreen, activePokemon,deviceIsOn }) => {
   const dummyFunc = async () => {
     topScreen();
   };
@@ -20,12 +21,12 @@ const Controls: React.FC<ControlsProps> = ({ topScreen, activePokemon }) => {
     <div className="flex justify-between items-center w-full  gap-6">
       <div className=" scale-75 md:scale-100 w-full flex flex-wrap gap-8 justify-center">
         <div className="flex gap-8 w-full">
-          <Button variation="power" icon={<PowerSettingsNewIcon fontSize="large" />} action={dummyFunc} />
-          <Button variation="mode" action={dummyFunc} />
+          <Button state={deviceIsOn} variation="power" icon={<PowerSettingsNewIcon fontSize="large" />} action={dummyFunc} />
+          <Button state={deviceIsOn} variation="mode" action={dummyFunc} />
         </div>
         <div className="flex gap-8 w-full">
-          <Button variation="mode" action={dummyFunc} />
-          <Button variation="mode" action={dummyFunc} />
+          <Button state={deviceIsOn} variation="mode" action={dummyFunc} />
+          <Button state={deviceIsOn} variation="mode" action={dummyFunc} />
         </div>
       </div>
       <div className="w-full scale-90 md:scale-100 flex justify-center items-center">

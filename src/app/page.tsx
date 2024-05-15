@@ -42,7 +42,7 @@ export default function Home() {
           className="w-[200px] h-[40px] absolute bottom-[60px] rounded-full left-0 right-0 mx-auto z-20 "
         ></div>
       </TopScreen>
-      <Controls activePokemon={switchActivePokemon} topScreen={topScreenHandler} />
+      <Controls deviceIsOn={screenIsOn} activePokemon={switchActivePokemon} topScreen={topScreenHandler} />
       <BottomScreen isOn={screenIsOn}>
         <Description description={description} />
       </BottomScreen>
