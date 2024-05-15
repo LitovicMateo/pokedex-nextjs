@@ -7,7 +7,7 @@ type BottomScreenProps = {
 
 const BottomScreen: React.FC<BottomScreenProps> = ({isOn}) => {
   return (
-    <div id="screen" className={`${isOn ? "bg-[#C3FBFF]" : "bg-black"} h-[334px] w-[366px] border-solid border-8 border-[#6A2323]`}></div>
+    <div id="screen" className={`${isOn ? "bg-[#C3FBFF]" : "bg-black"} h-[334px] max-h-[30%] w-[366px] max-w-full  border-solid border-8 border-[#6A2323]`}></div>
 )
 }
 
