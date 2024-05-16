@@ -5,58 +5,59 @@ import Description from "@/components/Description";
 import BottomScreen from "@/components/layout/BottomScreen";
 import Controls from "@/components/layout/Controls";
 import TopScreen from "@/components/layout/TopScreen";
+import { DeviceContext } from "@/context/deviceContext";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 export default function Home() {
-  const [screenIsOn, setScreenIsOn] = useState(false);
-  const [activeMode, setActiveMode] = useState<"info" | "stats" | "moves">("info");
-  const [activePokemon, setActivePokemon] = useState<number>(1);
-  const [description, setDescription] = useState<string>("");
+	const deviceCtx = useContext(DeviceContext);
 
-  const topScreenHandler = () => {
-    setScreenIsOn((prev) => !prev);
-  };
+	const [activePokemon, setActivePokemon] = useState<number>(1);
+	const [description, setDescription] = useState<string>("");
 
-  const switchActivePokemon = (number: number) => {
-    setActivePokemon((prev) => prev + number);
-  };
+	const topScreenHandler = () => {
+		deviceCtx.setPowerState(!deviceCtx.powerState);
+	};
 
-  const switchActiveMode = (mode: "info" | "stats" | "moves") => {
-    setActiveMode(mode);
-  };
+	const switchActivePokemon = (number: number) => {
+		setActivePokemon((prev) => prev + number);
+	};
 
-  useEffect(() => {
-    fetchPokemonDescription(activePokemon).then((desc) => setDescription(desc));
-  }, [activePokemon]);
+	const switchActiveMode = (mode: "info" | "stats" | "moves") => {
+		deviceCtx.setModeState(mode);
+	};
 
-  return (
-    <main className="flex flex-col gap-[30px] justify-start items-center bg-gradient-to-br p-[32px] pt-[64px] from-[#B63838] to-[#B22424] h-screen w-full md:max-h-[930px] md:max-w-[430px] rounded-md ">
-      <TopScreen isOn={screenIsOn}>
-        <div className="w-full h-full flex justify-center items-center">
-          <img
-            src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${activePokemon}.png`}
-            className="h-full aspect-square z-50"
-          />
-        </div>
-        <div
-          style={{
-            background:
-              "radial-gradient(40% 40% at 50% 50%, rgba(0, 108, 116, 0.75) 0%, rgba(0, 108, 116, 0.23) 50%, rgba(0, 108, 116, 0) 100%)",
-          }}
-          className="w-[200px] h-[40px] absolute bottom-[60px] rounded-full left-0 right-0 mx-auto z-20 "
-        ></div>
-      </TopScreen>
-      <Controls
-        changeMode={switchActiveMode}
-        deviceIsOn={screenIsOn}
-        activeMode={activeMode}
-        activePokemon={switchActivePokemon}
-        topScreen={topScreenHandler}
-      />
-      <BottomScreen isOn={screenIsOn}>
-        {activeMode === "info" && <Description description={description} />}
-      </BottomScreen>
-    </main>
-  );
+	useEffect(() => {
+		fetchPokemonDescription(activePokemon).then((desc) => setDescription(desc));
+	}, [activePokemon]);
+
+	return (
+		<>
+			<TopScreen isOn={deviceCtx.powerState}>
+				<div className="w-full h-full flex justify-center items-center">
+					<img
+						src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${activePokemon}.png`}
+						className="h-full aspect-square z-50"
+					/>
+				</div>
+				<div
+					style={{
+						background:
+							"radial-gradient(40% 40% at 50% 50%, rgba(0, 108, 116, 0.75) 0%, rgba(0, 108, 116, 0.23) 50%, rgba(0, 108, 116, 0) 100%)",
+					}}
+					className="w-[200px] h-[40px] absolute bottom-[60px] rounded-full left-0 right-0 mx-auto z-20 "
+				></div>
+			</TopScreen>
+			<Controls
+				changeMode={switchActiveMode}
+				deviceIsOn={deviceCtx.powerState}
+				activeMode={deviceCtx.modeState}
+				activePokemon={switchActivePokemon}
+				topScreen={topScreenHandler}
+			/>
+			<BottomScreen isOn={deviceCtx.powerState}>
+				{deviceCtx.modeState === "info" && <Description description={description} />}
+			</BottomScreen>
+		</>
+	);
 }
