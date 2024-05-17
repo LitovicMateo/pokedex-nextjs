@@ -13,7 +13,7 @@ type StatsProps = {
 const Stats: React.FC<StatsProps> = ({ stats }) => {
 
   return (
-    <div className="flex flex-col gap-2 w-full p-4 ">
+    <div className="flex flex-col  w-full h-full justify-between px-4 py-12 ">
         {stats.map((s) => <StatItem key={s.shortStat} stats={s} />)}
     </div>
   );

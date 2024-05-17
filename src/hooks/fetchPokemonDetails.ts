@@ -11,6 +11,7 @@ export type PokemonDetails = {
   name: string;
   description: string;
   type: string;
+  moves: PokemonMoves[],
   stats: {
     shortStat: string;
     stat: string;
@@ -40,13 +41,26 @@ type PokemonDetailsStatsAPI = {
 };
 
 type PokemonDescriptionAPI = {
-    flavor_text_entries: {
-      flavor_text: string;
-      language: {
-        name: string;
-      };
-    }[];
-  };
+  flavor_text_entries: {
+    flavor_text: string;
+    language: {
+      name: string;
+    };
+  }[];
+};
+
+type PokemonMoves = {
+  name: string;
+  accuracy: string;
+  powerPoints: number;
+  power: number;
+  damage_class: {
+    name: string
+  },
+  type: {
+    name: string
+  }
+}
 
 const POKEAPI_URI = "https://pokeapi.co/api/v2";
 
@@ -57,10 +71,10 @@ export const useFetchPokemon = (
   id: number
 ): { pokemon: PokemonDetails | null; isLoading: boolean; error: string | undefined } => {
   const [details, setDetails] = useState<PokemonDetailsAPI>();
+  const [moves, setMoves] = useState<PokemonMoves[]>();
   const [description, setDescription] = useState<string>();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
 
   const normalizeDescription = (data: PokemonDescriptionAPI) => {
     const english = data.flavor_text_entries.filter((e: any) => e.language.name === "en");
@@ -69,17 +83,31 @@ export const useFetchPokemon = (
 
     return description;
   };
+  let promises: string[] = [];
+  
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       const detailsUrl = `${POKEAPI_URI}/pokemon/${id}/`;
       const descriptionUrl = `${POKEAPI_URI}/pokemon-species/${id}/`;
-
       try {
         fetch(detailsUrl)
           .then((res) => res.json())
-          .then((data) => setDetails(data));
+          .then((data) => {
+            setDetails(data)
+            data.moves.map((move: any) => {
+              promises.push(move.move.url)
+            });
+            const fetchMoves = async() => {
+
+              const responses = await Promise.all(promises.map(i => fetch(i)))
+              const movesRes = await Promise.all(responses.map(m => m.json())) 
+              setMoves(movesRes)
+            }
+
+            fetchMoves()
+          });
 
         fetch(descriptionUrl)
           .then((res) => res.json())
@@ -97,10 +125,11 @@ export const useFetchPokemon = (
 
   let pokemon: PokemonDetails | null = null;
 
-  if (details && description) {
+  if (details && description && moves) {
     pokemon = {
       name: details.name,
       description,
+      moves,
       type: details.types[0].type.name,
       stats: details.stats.map((s, i) => {
         return {
