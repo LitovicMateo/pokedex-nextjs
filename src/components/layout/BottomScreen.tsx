@@ -13,7 +13,7 @@ const BottomScreen: React.FC<BottomScreenProps> = ({ isOn, children }) => {
         isOn ? "bg-[#C3FBFF]" : "bg-black"
       } h-[334px] max-h-[full] w-[366px] max-w-full flex justify-center items-center border-solid border-8 border-[#6A2323]`}
     >
-      {children}
+      {isOn && children}
     </div>
   );
 };
