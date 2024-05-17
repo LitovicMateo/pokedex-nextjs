@@ -48,8 +48,7 @@ const ButtonsMenu: React.FC<ButtonsMenuProps> = ({ devicePower, activeMode, hand
         state={devicePower}
         variation="mode"
         icon={<ListIcon fontSize="large" />}
-        action={handleMode.bind(null, "moves")}
-      />
+        action={()=>handleMode("moves")}      />
     </div>
   </div>
 )

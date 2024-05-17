@@ -14,6 +14,7 @@ export default function Home() {
 
 	const [activePokemon, setActivePokemon] = useState<number>(1);
 	const [description, setDescription] = useState<string>("");
+	const [error, setError] = useState<string | null>(null);
 
 	const topScreenHandler = () => {
 		deviceCtx.setPowerState(!deviceCtx.powerState);
@@ -28,7 +29,16 @@ export default function Home() {
 	};
 
 	useEffect(() => {
-		fetchPokemonDescription(activePokemon).then((desc) => setDescription(desc));
+		const fetchDescription = async () => {
+			try {
+				const desc = await fetchPokemonDescription(activePokemon);
+				setDescription(desc);
+				setError(null);
+			} catch (error) {
+				setError("Failed to fetch Pokemon description");
+			}
+		};
+		fetchDescription();
 	}, [activePokemon]);
 
 	return (
@@ -56,7 +66,11 @@ export default function Home() {
 				topScreen={topScreenHandler}
 			/>
 			<BottomScreen isOn={deviceCtx.powerState}>
-				{deviceCtx.modeState === "info" && <Description description={description} />}
+				{error ? (
+					<div>Error: {error}</div>
+				) : (
+					deviceCtx.modeState === "info" && <Description description={description} />
+				)}
 			</BottomScreen>
 		</>
 	);
