@@ -59,7 +59,7 @@ export default function Home() {
         {!pokemon ? (
           <div>Loading....</div>
         ) : (
-          (deviceCtx.modeState === "info" && pokemon && <Description description={pokemon!.description} />) ||
+          (deviceCtx.modeState === "info"  && <Description name={pokemon.name} description={pokemon!.description} />) ||
           (deviceCtx.modeState === "stats" && <Stats stats={pokemon!.stats} />) ||
           (deviceCtx.modeState === "moves" && <Moves moves={pokemon!.moves} />)
         )}
