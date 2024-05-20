@@ -28,8 +28,6 @@ export default function Home() {
   const deviceCtx = useContext(DeviceContext);
 
   const [activePokemonId, setActivePokemonId] = useState<number>(1);
-  const [description, setDescription] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
 
   const { pokemon } = useFetchPokemon(activePokemonId);
 
@@ -57,6 +55,15 @@ export default function Home() {
           )}
         </div>
       </TopScreen>
+      <BottomScreen isOn={deviceCtx.powerState}>
+        {!pokemon ? (
+          <div>Loading....</div>
+        ) : (
+          (deviceCtx.modeState === "info" && pokemon && <Description description={pokemon!.description} />) ||
+          (deviceCtx.modeState === "stats" && <Stats stats={pokemon!.stats} />) ||
+          (deviceCtx.modeState === "moves" && <Moves moves={pokemon!.moves} />)
+        )}
+      </BottomScreen>
       <Controls
         changeMode={switchActiveMode}
         deviceIsOn={deviceCtx.powerState}
@@ -64,15 +71,7 @@ export default function Home() {
         activePokemon={switchActivePokemon}
         topScreen={topScreenHandler}
       />
-      <BottomScreen isOn={deviceCtx.powerState}>
-        {error ? (
-          <div>Error: {error}</div>
-        ) : (
-          (deviceCtx.modeState === "info" && pokemon && <Description description={pokemon!.description} />) ||
-          (deviceCtx.modeState === "stats" && <Stats stats={pokemon!.stats} />) ||
-          (deviceCtx.modeState === "moves" && <Moves moves={pokemon!.moves} />)
-        )}
-      </BottomScreen>
+
     </>
   );
 }
