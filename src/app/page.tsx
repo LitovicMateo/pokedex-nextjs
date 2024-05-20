@@ -10,7 +10,7 @@ import Moves from "@/components/Moves";
 import Stats from "@/components/Stats";
 import { DeviceContext } from "@/context/deviceContext";
 import { useFetchPokemon } from "@/hooks/fetchPokemonDetails";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 
 export type PokemonDetails = {
   name: string;
