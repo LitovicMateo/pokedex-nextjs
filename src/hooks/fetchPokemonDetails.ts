@@ -4,63 +4,29 @@ Custom Hook that makes a call to PokeAPI, fetches Pokemon Bio and his Descriptio
 transforms the data, and returns it along with 'loading' and 'error' state.
 
 */
-
 import { useEffect, useState } from "react";
-
-export type PokemonDetails = {
-  name: string;
-  description: string;
-  type: string;
-  moves: PokemonMoves[],
-  stats: {
-    shortStat: string;
-    stat: string;
-    value: number;
-    statGrade: string;
-  }[];
-};
+import { PokemonDetails } from "@/lib/types/PokemonAPI";
 
 type PokemonDetailsAPI = {
   name: string;
   weight: number;
   types: PokemonDetailsTypeAPI[];
   stats: PokemonDetailsStatsAPI[];
+  moves: { move: { url: string } }[];
 };
 
 type PokemonDetailsTypeAPI = {
-  type: {
-    name: string;
-  };
+  type: { name: string };
 };
 
 type PokemonDetailsStatsAPI = {
   base_stat: number;
-  stat: {
-    name: string;
-  };
+  stat: { name: string };
 };
 
 type PokemonDescriptionAPI = {
-  flavor_text_entries: {
-    flavor_text: string;
-    language: {
-      name: string;
-    };
-  }[];
+  flavor_text_entries: { flavor_text: string; language: { name: string } }[];
 };
-
-type PokemonMoves = {
-  name: string;
-  accuracy: string;
-  powerPoints: number;
-  power: number;
-  damage_class: {
-    name: string
-  },
-  type: {
-    name: string
-  }
-}
 
 const POKEAPI_URI = "https://pokeapi.co/api/v2";
 
@@ -70,51 +36,60 @@ const maxStats = [255, 180, 200, 180, 200, 200];
 export const useFetchPokemon = (
   id: number
 ): { pokemon: PokemonDetails | null; isLoading: boolean; error: string | undefined } => {
-  const [details, setDetails] = useState<PokemonDetailsAPI>();
-  const [moves, setMoves] = useState<PokemonMoves[]>();
-  const [description, setDescription] = useState<string>();
-  const [error, setError] = useState<string>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const normalizeDescription = (data: PokemonDescriptionAPI) => {
-    const english = data.flavor_text_entries.filter((e: any) => e.language.name === "en");
-
-    const description = english[0].flavor_text.replace(/[\n\f]/g, " ");
-
-    return description;
-  };
-  let promises: string[] = [];
-  
+  const [details, setDetails] = useState<PokemonDetailsAPI | null>(null);
+  const [moves, setMoves] = useState<PokemonDetails["moves"] | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      const detailsUrl = `${POKEAPI_URI}/pokemon/${id}/`;
-      const descriptionUrl = `${POKEAPI_URI}/pokemon-species/${id}/`;
+    const fetchDetails = async (): Promise<string[]> => {
       try {
-        fetch(detailsUrl)
-          .then((res) => res.json())
-          .then((data) => {
-            setDetails(data)
-            data.moves.map((move: any) => {
-              promises.push(move.move.url)
-            });
-            const fetchMoves = async() => {
-
-              const responses = await Promise.all(promises.map(i => fetch(i)))
-              const movesRes = await Promise.all(responses.map(m => m.json())) 
-              setMoves(movesRes)
-            }
-
-            fetchMoves()
-          });
-
-        fetch(descriptionUrl)
-          .then((res) => res.json())
-          .then((data) => normalizeDescription(data))
-          .then((nData) => setDescription(nData));
+        const res = await fetch(`${POKEAPI_URI}/pokemon/${id}/`);
+        if (!res.ok) throw new Error("Failed to fetch details");
+        const data: PokemonDetailsAPI = await res.json();
+        setDetails(data);
+        return data.moves.map(move => move.move.url);
       } catch (err) {
         setError("Fetching pokemon details failed");
+        setIsLoading(false);
+        throw err;
+      }
+    };
+
+    const fetchMoves = async (moveUrls: string[]) => {
+      try {
+        const responses = await Promise.all(moveUrls.map(url => fetch(url)));
+        const movesData = await Promise.all(responses.map(res => res.json()));
+        setMoves(movesData);
+      } catch {
+        setError("Fetching moves failed");
+      }
+    };
+
+    const fetchDescription = async () => {
+      try {
+        const res = await fetch(`${POKEAPI_URI}/pokemon-species/${id}/`);
+        if (!res.ok) throw new Error("Failed to fetch description");
+        const data: PokemonDescriptionAPI = await res.json();
+        setDescription(normalizeDescription(data));
+      } catch {
+        setError("Fetching description failed");
+      }
+    };
+
+    const normalizeDescription = (data: PokemonDescriptionAPI): string => {
+      const english = data.flavor_text_entries.find(entry => entry.language.name === "en");
+      return english ? english.flavor_text.replace(/[\n\f]/g, " ") : "";
+    };
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const moveUrls = await fetchDetails();
+        await Promise.all([fetchMoves(moveUrls), fetchDescription()]);
+      } catch {
+        // Error already handled in individual functions
       } finally {
         setIsLoading(false);
       }
@@ -131,20 +106,14 @@ export const useFetchPokemon = (
       description,
       moves,
       type: details.types[0].type.name,
-      stats: details.stats.map((s, i) => {
-        return {
-          shortStat: statAcronyms[i],
-          stat: s.stat.name,
-          value: s.base_stat,
-          statGrade: Math.round((s.base_stat / maxStats[i]) * 100).toString() + "%",
-        };
-      }),
+      stats: details.stats.map((s, i) => ({
+        shortStat: statAcronyms[i],
+        stat: s.stat.name,
+        value: s.base_stat,
+        statGrade: Math.round((s.base_stat / maxStats[i]) * 100).toString() + "%",
+      })),
     };
   }
 
-  return {
-    pokemon,
-    isLoading,
-    error,
-  };
+  return { pokemon, isLoading, error };
 };

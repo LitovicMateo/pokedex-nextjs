@@ -12,18 +12,6 @@ import { DeviceContext } from "@/context/deviceContext";
 import { useFetchPokemon } from "@/hooks/fetchPokemonDetails";
 import { useContext, useState } from "react";
 
-export type PokemonDetails = {
-  name: string;
-  description: string;
-  type: string;
-  stats: {
-    shortStat: string;
-    stat: string;
-    value: number;
-    statGrade: string;
-  }[];
-};
-
 export default function Home() {
   const deviceCtx = useContext(DeviceContext);
 
@@ -36,6 +24,9 @@ export default function Home() {
   };
 
   const switchActivePokemon = (number: number) => {
+    if (activePokemonId === 1 && number === -1) {
+      return
+    }
     setActivePokemonId((prev) => prev + number);
   };
 
