@@ -43,14 +43,18 @@ export const useFetchPokemon = (
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
     const fetchDetails = async (): Promise<string[]> => {
       try {
-        const res = await fetch(`${POKEAPI_URI}/pokemon/${id}/`);
+        const res = await fetch(`${POKEAPI_URI}/pokemon/${id}/`, { signal });
         if (!res.ok) throw new Error("Failed to fetch details");
         const data: PokemonDetailsAPI = await res.json();
         setDetails(data);
         return data.moves.map(move => move.move.url);
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === "AbortError") return [];
         setError("Fetching pokemon details failed");
         setIsLoading(false);
         throw err;
@@ -59,21 +63,23 @@ export const useFetchPokemon = (
 
     const fetchMoves = async (moveUrls: string[]) => {
       try {
-        const responses = await Promise.all(moveUrls.map(url => fetch(url)));
+        const responses = await Promise.all(moveUrls.map(url => fetch(url, { signal })));
         const movesData = await Promise.all(responses.map(res => res.json()));
         setMoves(movesData);
-      } catch {
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
         setError("Fetching moves failed");
       }
     };
 
     const fetchDescription = async () => {
       try {
-        const res = await fetch(`${POKEAPI_URI}/pokemon-species/${id}/`);
+        const res = await fetch(`${POKEAPI_URI}/pokemon-species/${id}/`, { signal });
         if (!res.ok) throw new Error("Failed to fetch description");
         const data: PokemonDescriptionAPI = await res.json();
         setDescription(normalizeDescription(data));
-      } catch {
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
         setError("Fetching description failed");
       }
     };
@@ -96,6 +102,10 @@ export const useFetchPokemon = (
     };
 
     fetchData();
+
+    return () => {
+      abortController.abort();
+    };
   }, [id]);
 
   let pokemon: PokemonDetails | null = null;

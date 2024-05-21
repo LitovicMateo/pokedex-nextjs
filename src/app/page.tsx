@@ -10,29 +10,32 @@ import Moves from "@/components/Moves";
 import Stats from "@/components/Stats";
 import { DeviceContext } from "@/context/deviceContext";
 import { useFetchPokemon } from "@/hooks/fetchPokemonDetails";
-import { useContext, useState } from "react";
+import { useContext, useState, useCallback } from "react";
+import { debounce } from 'lodash';
 
 export default function Home() {
   const deviceCtx = useContext(DeviceContext);
 
   const [activePokemonId, setActivePokemonId] = useState<number>(1);
 
-  const { pokemon } = useFetchPokemon(activePokemonId);
+  const { pokemon, isLoading, error } = useFetchPokemon(activePokemonId);
 
-  const topScreenHandler = () => {
+  const topScreenHandler = useCallback(() => {
     deviceCtx.setPowerState(!deviceCtx.powerState);
-  };
+  }, [deviceCtx]);
 
-  const switchActivePokemon = (number: number) => {
-    if (activePokemonId === 1 && number === -1) {
-      return
-    }
-    setActivePokemonId((prev) => prev + number);
-  };
+  const switchActivePokemon = useCallback(debounce((number: number) => {
+    setActivePokemonId((prev) => {
+      if (prev === 1 && number === -1) {
+        return prev;
+      }
+      return prev + number;
+    });
+  }, 300), []); // Adjust the delay time (in milliseconds) as needed
 
-  const switchActiveMode = (mode: "info" | "stats" | "moves") => {
+  const switchActiveMode = useCallback((mode: "info" | "stats" | "moves") => {
     deviceCtx.setModeState(mode);
-  };
+  }, [deviceCtx]);
 
   return (
     <>
@@ -49,10 +52,16 @@ export default function Home() {
       <BottomScreen isOn={deviceCtx.powerState}>
         {!pokemon ? (
           <div>Loading....</div>
+        ) : error ? (
+          <div>{error}</div>
         ) : (
-          (deviceCtx.modeState === "info"  && <Description name={pokemon.name} description={pokemon!.description} />) ||
-          (deviceCtx.modeState === "stats" && <Stats stats={pokemon!.stats} />) ||
-          (deviceCtx.modeState === "moves" && <Moves moves={pokemon!.moves} />)
+          <>
+            {deviceCtx.modeState === "info" && (
+              <Description name={pokemon!.name} description={pokemon!.description} />
+            )}
+            {deviceCtx.modeState === "stats" && <Stats stats={pokemon!.stats} />}
+            {deviceCtx.modeState === "moves" && <Moves moves={pokemon!.moves} />}
+          </>
         )}
       </BottomScreen>
       <Controls
@@ -62,7 +71,6 @@ export default function Home() {
         activePokemon={switchActivePokemon}
         topScreen={topScreenHandler}
       />
-
     </>
   );
 }
